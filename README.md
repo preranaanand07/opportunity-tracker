@@ -1,110 +1,114 @@
-# OpportunityTracker — Prototype
+# OpportunityTracker
 
-A working slice of Module 1 (Opportunity Tracker) from the OpportunityTracker plan:
-a dynamic dashboard backed by a real API, with progressive-reminder deadlines,
-add/edit/delete, and a live countdown to your nearest deadline.
+**Never miss a deadline, never walk into an interview unprepared.**
 
-This is a **zero-dependency** Node.js app — no `npm install` required to run it,
-no external services to configure. That makes it trivial to deploy anywhere Node
-runs, and easy to read end-to-end before you decide what to swap in for scale.
+OpportunityTracker is a background agent that detects job/course/competition deadlines as you browse, logs them in seconds, and reminds you at the right time — paired with an ML-powered prep engine that turns a job description into a study schedule and a day-of briefing.
 
-## Run it locally
+> **Status: 🟡 Early build — core loop working, extension + ML in progress.**
+> The dashboard + backend below are live and functional. The browser extension and ML prep engine are the current focus — see [Roadmap](#roadmap) for what's built vs. planned, and [Contributing](#contributing) if you want to help build them.
+
+---
+
+## The problem
+
+- Deadlines get missed because reminders come too late, or never
+- Applications, deadlines, and prep material end up scattered across emails, browser tabs, and notes apps
+- Zero structured prep time before interviews or assessments — cramming happens, if at all
+
+## The approach — two modules
+
+**1. Opportunity Tracker (background agent)**
+Detects deadline-related keywords while you browse ("apply now," "last date," "register"), pops up a lightweight 3-field form, and fires progressive reminders (7 days → 2 days → 1 day → 3 hours → 30 minutes before deadline).
+
+**2. Smart Prep Engine (ML-powered)**
+Paste a job description → it extracts key topics, estimates time to prepare each one based on your level, builds a reverse-engineered study schedule from your deadline backward, and generates a quick briefing an hour before your interview.
+
+---
+
+## Current status
+
+| Piece | Status |
+|---|---|
+| Dashboard (add/edit/delete opportunities, live countdown) | ✅ Working |
+| Backend API (REST, persistent storage) | ✅ Working |
+| Progressive reminder scheduling | 🚧 In progress |
+| Browser extension (keyword detection + popup) | 🚧 In progress |
+| JD analyzer (topic extraction via LLM) | 🚧 In progress |
+| Reverse prep scheduler | ⏳ Planned |
+| Day-of flash brief | ⏳ Planned |
+| Auth (multi-user support) | ⏳ Planned |
+| Platform-specific scrapers (LinkedIn, Unstop, etc.) | ⏳ Planned |
+
+---
+
+## Tech stack
+
+| Layer | Tech |
+|---|---|
+| Extension | Chrome (Manifest V3), React + Vite |
+| Dashboard | HTML/CSS/JS (moving toward Next.js) |
+| Backend | Node.js |
+| Database | Postgres + Prisma (currently JSON file in prototype) |
+| ML | OpenAI GPT-4o, spaCy for lightweight NER |
+| Notifications | Resend (email), Chrome Notifications API |
+| Hosting | Render |
+
+Full architecture and tech decisions are in [`/docs`](./docs) *(coming soon)*.
+
+---
+
+## Getting started
 
 ```bash
+git clone https://github.com/preranaanand07/opportunity-tracker.git
+cd opportunity-tracker
 node server.js
 ```
 
-Then open **http://localhost:3000**. That's it — no build step, no `.env` needed
-for the prototype.
+Then open **http://localhost:3000**. No `npm install` required for the current backend — it's dependency-free by design while the core loop stabilizes.
 
-(`PORT` env var is respected if you need a different port, e.g. `PORT=8080 node server.js`.)
+---
 
-## What's actually here
+## Roadmap
 
-```
-server.js         → REST API + static file server (pure Node http/fs, no Express)
-data.json          → your data, stored as JSON (see "swapping storage" below)
-public/
-  index.html       → dashboard shell
-  style.css        → design system
-  app.js           → fetches the API, renders the countdown + cards, handles the modal
-```
+**Phase 1 — Core loop** *(current focus)*
+- [x] Dashboard: log, edit, delete opportunities
+- [x] Live countdown + urgency indicators
+- [ ] Reminders actually firing (email)
+- [ ] Browser extension: keyword detection + popup logging
 
-### API
+**Phase 2 — Intelligence**
+- [ ] JD paste → topic extraction
+- [ ] Time estimation per topic
+- [ ] Reverse prep schedule generation
 
-| Method | Route                     | Does                          |
-|--------|----------------------------|--------------------------------|
-| GET    | `/api/opportunities`       | List all, sorted by deadline  |
-| POST   | `/api/opportunities`       | Create one                    |
-| PUT    | `/api/opportunities/:id`   | Replace fields                |
-| PATCH  | `/api/opportunities/:id`   | Partial update (e.g. status)  |
-| DELETE | `/api/opportunities/:id`   | Delete                        |
-| GET    | `/api/health`              | Liveness check                |
+**Phase 3 — Polish**
+- [ ] Platform-specific detection (LinkedIn, Internshala, Unstop)
+- [ ] Day-of flash brief
+- [ ] Mobile push notifications
+- [ ] Progress tracking on prep
 
-Opportunity shape:
+**Phase 4 — Advanced**
+- [ ] Learns your patterns (roles you apply to most)
+- [ ] Auto-suggested prep resources
+- [ ] Calendar sync
+- [ ] Team/friend prep mode
 
-```json
-{
-  "id": "uuid",
-  "name": "SDE Intern — Example Corp",
-  "type": "Job",
-  "deadline": "2026-07-20T18:30:00.000Z",
-  "notes": "Referral from Priya",
-  "remindBefore": [168, 48, 24, 3, 0.5],
-  "status": "active"
-}
-```
+---
 
-## What's deliberately simplified vs. the full tech-stack doc
+## Contributing
 
-This is scoped as a **prototype you can deploy and click through today**, not the
-final architecture. Specifically:
+This project is actively looking for contributors, especially on:
+- 🧩 **Browser extension** (Manifest V3, content scripts, MutationObserver-based detection)
+- 🤖 **ML/prompt engineering** (topic extraction, prep scheduling logic)
+- 🎨 **Frontend** (dashboard polish, Next.js migration)
 
-- **Storage is a JSON file, not Postgres.** All reads/writes go through a small
-  set of functions at the top of `server.js` (`readDb`, `createOpportunity`, etc.).
-  When you're ready for Postgres + Prisma, swap just that block — the API routes
-  and frontend don't need to change.
-- **No actual reminder delivery yet** (email/push). The countdown and urgency
-  color-coding are live and real; wiring `remindBefore` to Resend/FCM per the
-  tech-stack doc is the natural next slice — the data model already stores the
-  reminder offsets, it just isn't firing them.
-- **No browser extension / keyword detection yet.** This is the dashboard +
-  backend that the extension would eventually POST into. You can already log
-  opportunities manually to use it today.
-- **No auth.** Single-user prototype. Add Clerk/Firebase before sharing this
-  with more than one person, since right now anyone with the URL can read/write
-  all data.
+Check [open issues](../../issues) — issues tagged `good first issue` are a good starting point. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) *(coming soon)* for setup details and PR guidelines.
 
-## Deploying it
+Not sure where to start? Open an issue or start a discussion — happy to point you at something matching what you're interested in.
 
-Because it's plain Node with no build step, any of these work with almost no config:
+---
 
-### Render / Railway (recommended — matches your tech-stack doc)
-1. Push this folder to a GitHub repo.
-2. Create a new **Web Service**, connect the repo.
-3. Build command: *(leave blank — nothing to build)*
-4. Start command: `node server.js`
-5. Done. Render/Railway sets `PORT` automatically; the app already reads it.
+## License
 
-**One caveat:** the JSON file store writes to the local filesystem. Render and
-Railway's filesystems are ephemeral on redeploy — fine for demoing, but you'll
-lose data on redeploy until you move to Postgres. If you want persistence sooner
-without a full Postgres migration, both platforms offer a small persistent disk
-you can mount and point `DB_FILE` at.
-
-### Fly.io
-Same idea — `fly launch`, no Dockerfile needed if you accept its Node buildpack,
-start command `node server.js`.
-
-### Any VPS
-```bash
-git clone <your repo>
-cd opportunity-tracker
-node server.js   # or run it under pm2 / systemd for restarts
-```
-
-## Next slice to build
-
-Given reminders were flagged as the top priority: wire `remindBefore` to an
-actual scheduler (node-cron polling `data.json` every minute is enough to
-prototype the *feel* of progressive reminders before introducing Bull + Redis).
+MIT — see [`LICENSE`](./LICENSE).
