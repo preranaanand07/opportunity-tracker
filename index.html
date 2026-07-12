@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OpportunityTracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">●</span>
+    <span class="brand-name">Opportunity<span class="brand-accent">Tracker</span></span>
+  </div>
+  <button class="btn btn-primary" id="openAddBtn">+ Log opportunity</button>
+</header>
+
+<main class="layout">
+
+  <section class="hero" id="hero">
+    <div class="hero-label">NEXT DEADLINE</div>
+    <div class="hero-body" id="heroBody">
+      <div class="hero-empty">
+        Nothing tracked yet. Log your first opportunity to start the clock.
+      </div>
+    </div>
+  </section>
+
+  <section class="board">
+    <div class="board-header">
+      <h2>Tracked opportunities</h2>
+      <div class="filters" id="filters">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="Job">Job</button>
+        <button class="chip" data-filter="Course">Course</button>
+        <button class="chip" data-filter="Certification">Certification</button>
+        <button class="chip" data-filter="Competition">Competition</button>
+      </div>
+    </div>
+    <div class="list" id="list">
+      <!-- cards injected here -->
+    </div>
+  </section>
+
+</main>
+
+<!-- Add/Edit modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <form class="modal" id="oppForm">
+    <div class="modal-head">
+      <h3 id="modalTitle">Log an opportunity</h3>
+      <button type="button" class="close-btn" id="closeModalBtn">&times;</button>
+    </div>
+
+    <input type="hidden" id="oppId" />
+
+    <label class="field">
+      <span>Opportunity name</span>
+      <input type="text" id="oppName" placeholder="e.g. Frontend Engineer — Stripe" required />
+    </label>
+
+    <div class="field-row">
+      <label class="field">
+        <span>Type</span>
+        <select id="oppType">
+          <option>Job</option>
+          <option>Course</option>
+          <option>Certification</option>
+          <option>Competition</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Deadline</span>
+        <input type="datetime-local" id="oppDeadline" required />
+      </label>
+    </div>
+
+    <label class="field">
+      <span>Notes <em>(optional — JD link, role, context)</em></span>
+      <textarea id="oppNotes" rows="2" placeholder="Paste a link or leave yourself a note"></textarea>
+    </label>
+
+    <div class="field">
+      <span>Remind me before</span>
+      <div class="remind-chips" id="remindChips">
+        <label class="remind-chip"><input type="checkbox" value="168" checked> 7 days</label>
+        <label class="remind-chip"><input type="checkbox" value="48" checked> 2 days</label>
+        <label class="remind-chip"><input type="checkbox" value="24" checked> 1 day</label>
+        <label class="remind-chip"><input type="checkbox" value="3" checked> 3 hours</label>
+        <label class="remind-chip"><input type="checkbox" value="0.5" checked> 30 min</label>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="deleteBtn" style="display:none">Delete</button>
+      <div class="spacer"></div>
+      <button type="button" class="btn btn-ghost" id="cancelBtn">Cancel</button>
+      <button type="submit" class="btn btn-primary">Save opportunity</button>
+    </div>
+  </form>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
